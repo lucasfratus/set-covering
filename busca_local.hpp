@@ -4,6 +4,7 @@
 #include "instancia.hpp"
 #include "solucao.hpp"
 
+
 void remocaoRedundante(Solucao& sol) {
     /* 
     Remove uma coluna redundante.

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -11,40 +13,6 @@ int N_LINHAS, N_COLUNAS;
 
 std::vector<float>            custo;      // custo[j]     = custo da coluna j
 std::vector<std::vector<int>> cobertura;  // cobertura[j] = linhas cobertas pela coluna j
-
-struct Solucao {
-    float custo_total = 0.0f;
-    std::bitset<MAX_COLUNAS> colunas_escolhidas;  // representação binária
-
-    bool ehViavel() {
-        std::vector<bool> cobertas(N_LINHAS + 1, false);
-        for (int j = 0; j < N_COLUNAS; j++) {
-            if (colunas_escolhidas.test(j)) {
-                for (int linha : cobertura[j]) {
-                    cobertas[linha] = true;
-                }
-            }
-        }
-        for (int i = 1; i <= N_LINHAS; i++) {
-            if (!cobertas[i]) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    void imprimir() {
-        std::cout << "Custo total = " << custo_total << "\n";
-        std::cout << "Viavel = " << (ehViavel() ? "SIM" : "NAO") << "\n";
-        std::cout << "Colunas = ";
-        for (int j = 0; j < N_COLUNAS; j++)
-            if (colunas_escolhidas.test(j)) std::cout << (j + 1) << " ";
-        std::cout << "\nBinario = ";
-        for (int j = 0; j < N_COLUNAS; j++)
-            std::cout << colunas_escolhidas[j];
-        std::cout << "\n";
-    }
-};
 
 
 void lerInstancia(const std::string& caminho) {
@@ -70,25 +38,4 @@ void lerInstancia(const std::string& caminho) {
         while (ss >> row)
             cobertura[j].push_back(row);
     }
-}
-
-int main() {
-    lerInstancia("Teste_01.dat");
-    std::cout << "Instancia: " << N_LINHAS << " linhas, " << N_COLUNAS << " colunas\n\n";
-
-    if (N_COLUNAS > MAX_COLUNAS) {
-        std::cerr << "Erro: N_COLUNAS excede MAX_COLUNAS!\n";
-        return 1;
-    }
-
-
-    // teste de representação
-    Solucao sol;
-    sol.colunas_escolhidas.set(15);   
-    sol.colunas_escolhidas.set(32);   
-    sol.custo_total = custo[15] + custo[32];
-
-    sol.imprimir();
-
-    return 0;
 }
