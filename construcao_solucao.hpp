@@ -15,6 +15,7 @@ void setSeed(int seed) {
     num_aleatorio.seed(seed);
 }
 
+
 Solucao construcaoGRASP(double alfa){
     Solucao sol;
     std::vector<bool> cobertas(N_LINHAS + 1, false);

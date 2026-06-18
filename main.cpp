@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
  
-#include "instancia.hpp"
+#include "leitura.hpp"
 #include "solucao.hpp"
 #include "construcao_solucao.hpp"
 #include "busca_local.hpp"
