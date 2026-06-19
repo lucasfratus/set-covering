@@ -17,7 +17,8 @@ std::vector<std::vector<int>> cobertura;  // cobertura[j] = linhas cobertas pela
 
 void lerInstancia(const std::string& caminho) {
     std::ifstream arquivo(caminho);
-    std::string var, linha;
+    std::string var;
+    std::string linha;
 
     arquivo >> var >> N_LINHAS;    
     arquivo >> var >> N_COLUNAS;   
@@ -28,10 +29,17 @@ void lerInstancia(const std::string& caminho) {
 
     std::getline(arquivo, linha);    // consome resto da linha "DADOS"
     while (std::getline(arquivo, linha)) {
-        if (linha.empty()) continue;
+        if (linha.empty()) {
+            continue;
+        }
+
         std::stringstream ss(linha);
-        int id; float c;
-        if (!(ss >> id >> c)) continue;
+        int id;
+         float c;
+        if (!(ss >> id >> c)) {
+            continue;
+        }
+        
         int j = id - 1;            
         custo[j] = c;
         int row;

@@ -112,11 +112,11 @@ std::vector<bool> saoCobertas(const Solucao& sol, int& total_cobertas) {
 
 void repararSolucao(Solucao& sol) {
     int total_cobertas = 0;
-    std::vector<bool> cobertas = saoCobertas(N_LINHAS, total_cobertas);
+    std::vector<bool> cobertas = saoCobertas(sol, total_cobertas);
 
     while (total_cobertas < N_LINHAS) {
         int melhor_coluna = -1;
-        double melhor_razao = 1.0; // mudar isso?
+        double melhor_razao = 1e18;
 
         for (int j = 0; j < N_COLUNAS; j++) {
             if (sol.colunas_escolhidas.test(j)) {
@@ -176,7 +176,7 @@ void buscaLocal(Solucao& sol) {
         return;
     }
 
-    removerColunasRedundantes(sol);
+    removerRedundantes(sol);
     sol.recalcularCusto();
 
 }

@@ -2,11 +2,30 @@
  
 #include <iostream>
 #include <vector>
-#include "instancia.hpp"
+#include "leitura.hpp"
 
 struct Solucao {
     float custo_total = 0.0f;
     std::bitset<MAX_COLUNAS> colunas_escolhidas;  // representação binária
+
+    void recalcularCusto() {
+        custo_total = 0.0;
+        for (int j = 0; j < N_COLUNAS; j++) {
+            if (colunas_escolhidas.test(j)) {
+                custo_total += custo[j];
+            }
+        }
+    }
+
+    int quantidadeColunas() const {
+        int total = 0;
+        for (int j = 0; j < N_COLUNAS; j++) {
+            if (colunas_escolhidas.test(j)) {
+                total++;
+            }
+        }
+        return total;
+    }
 
     bool ehViavel() {
         std::vector<bool> cobertas(N_LINHAS + 1, false);

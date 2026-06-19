@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <random>
-#include "instancia.hpp"
+#include "leitura.hpp"
 #include "solucao.hpp"
 
 
