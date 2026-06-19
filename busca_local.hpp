@@ -6,6 +6,9 @@
 
 
 std::vector<int> calcularCobertura(const Solucao& sol) {
+    /*
+    Calcula a quantidade de vezes que cada linha está coberta pela solução.
+    */
     std::vector<int> contagem(N_LINHAS + 1, 0);
 
     for (int j = 0; j < N_COLUNAS; j++) {
@@ -21,6 +24,10 @@ std::vector<int> calcularCobertura(const Solucao& sol) {
 }
 
 bool ehRedundante(int coluna, const std::vector<int>& contagem) {
+    /*
+    Verifica se uma coluna selecionada é redundante. Uma coluna é redundante se todas as linhas que ela
+    cobre já estão cobertas por outras colunas selecionadas.
+    */
     for (int linha : cobertura[coluna]) {
         if (contagem[linha] <= 1) {
             return false;
@@ -34,8 +41,6 @@ bool ehRedundante(int coluna, const std::vector<int>& contagem) {
 void removerRedundantes(Solucao& sol) {
     /* 
     Remove colunas redundantes.
-    Uma coluna é redundante se todas as linhas que ela
-    cobre já estão cobertas por outras colunas selecionadas.
     */
 
     std::vector<int> contagem(N_LINHAS + 1, 0);
@@ -90,6 +95,13 @@ void removerRedundantes(Solucao& sol) {
 
 
 std::vector<bool> saoCobertas(const Solucao& sol, int& total_cobertas) {
+    /*
+    Identifica quais linhas estão cobertas pela solução.
+    Guarda apenas uma informação booleana para cada linha.
+
+    Também retorna o total de linhas cobertas.
+    Essa função é usada principalmente no reparo de soluções inviáveis.
+    */
     std::vector<bool> cobertas(N_LINHAS + 1, false);
     total_cobertas = 0;
 

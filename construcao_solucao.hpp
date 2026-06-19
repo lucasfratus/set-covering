@@ -17,6 +17,12 @@ void setSeed(int seed) {
 
 
 Solucao construcaoGRASP(double alfa){
+    /*
+    Constrói uma solução inicial viável utilizando uma estratégia gulosa aleatorizada.
+    O parâmetro "alfa" controla o nível de aleatoriedade da construção. Quanto mais próximo de 1,
+    o comportamento é mais aleatório; quanto mais próximo de 0, o comportamento é mais guloso.
+    */
+
     Solucao sol;
     std::vector<bool> cobertas(N_LINHAS + 1, false);
     int total_cobertas = 0;
@@ -55,7 +61,7 @@ Solucao construcaoGRASP(double alfa){
         float razao_max = *std::max_element(razoes.begin(), razoes.end());
 
 
-        // RLC: candidatos com razão < (min + alfa * (max - min))
+        // monta a RLC: candidatos com razão < (min + alfa * (max - min))
         std::vector<int> rlc;
         for (int k = 0; k < (int)candidatos.size(); k++) {
             if (razoes[k] <= (razao_min + alfa * (razao_max - razao_min))) {

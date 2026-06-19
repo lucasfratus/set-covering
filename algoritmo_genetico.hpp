@@ -5,15 +5,16 @@
 #include "solucao.hpp"
 
 struct Parametros {
-    int tamanho_populacao = 50;
-    int max_geracoes = 100;
-    int n_torneio = 4;
-    int n_elite = 2;
-    double alfa_grasp = 0.50;
-    double taxa_crossover = 0.90;
-    double taxa_mutacao = 0.01;
+    int tamanho_populacao = 0;
+    int max_geracoes = 0;
+    int n_torneio = 0;
+    int n_elite = 0;
+    double alfa_grasp = 0.00;
+    double taxa_crossover = 0.00;
+    double taxa_mutacao = 0.00;
     bool aplicar_bl_pop_inicial = true;
 };
+
 
 struct Resultado {
     Solucao melhor;
@@ -25,6 +26,7 @@ bool melhorQue(const Solucao& a, const Solucao& b) {
     // serve como uma função lambda para a função "sort()" do c++
     return a.custo_total < b.custo_total;
 }
+
 
 std::vector<Solucao> gerarPopulacaoInicial(const Parametros& parametros) {
     std::vector<Solucao> populacao;

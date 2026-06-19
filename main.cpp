@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
- 
+#include <string>
+
 #include "leitura.hpp"
 #include "solucao.hpp"
 #include "construcao_solucao.hpp"
@@ -10,7 +11,7 @@
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        std::cerr << "Uso: " << argv[0] << " <arquivo_instancia> [seed]\n";
+        std::cerr << "Uso: " << argv[0] << " <arquivo_instancia> [seed | --random | -r]\n";
         return 1;
     }
 
@@ -18,26 +19,35 @@ int main(int argc, char* argv[]) {
 
     unsigned int seed = 42;
     if (argc >= 3) {
-        seed = static_cast<unsigned int>(std::stoul(argv[2]));
+        std::string argumento_seed = argv[2];
+        if (argumento_seed == "--random" || argumento_seed == "-r") {
+            std::random_device rd;
+            std::mt19937 gerador_seed(rd());
+            std::uniform_int_distribution<unsigned int> distribuicao_seed;
+
+            seed = distribuicao_seed(gerador_seed);
+        } else {
+            seed = static_cast<unsigned int>(std::stoul(argumento_seed));
+        }
     }
 
     try {
         lerInstancia(caminho);
         setSeed(seed);
 
-        std::cout << "Instancia: " << N_LINHAS << " linhas, " << N_COLUNAS << " colunas\n";
+        std::cout << "Instância: " << N_LINHAS << " linhas, " << N_COLUNAS << " colunas\n";
         std::cout << "Arquivo: " << caminho << "\n";
-        std::cout << "Seed: " << seed << "\n\n";
+        std::cout << "Seed usada: " << seed << "\n\n";
 
         Parametros parametros;
-        parametros.tamanho_populacao = 30;
-        parametros.max_geracoes = 100;
+        parametros.tamanho_populacao = 200;
+        parametros.max_geracoes = 500;
         parametros.n_torneio = 3;
         parametros.n_elite = 2;
-        parametros.alfa_grasp = 0.30;
+        parametros.alfa_grasp = 0.35;
         parametros.taxa_crossover = 0.90;
         parametros.taxa_mutacao = 1.0 / N_COLUNAS;
-        parametros.aplicar_bl_pop_inicial = true;
+        parametros.aplicar_bl_pop_inicial = false;
 
         Resultado resultado = executarAlgoritmoGenetico(parametros);
 
