@@ -5,10 +5,6 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#include <bitset>
-
-const int MAX_COLUNAS = 100000;  // tamanho fixo (maior q qualquer instância) para utilizar o bitset
-
 int N_LINHAS, N_COLUNAS;
 
 std::vector<float>            custo;      // custo[j]     = custo da coluna j

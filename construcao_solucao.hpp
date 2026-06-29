@@ -1,26 +1,38 @@
 #pragma once
  
-#include <vector>
 #include <algorithm>
 #include <cstdlib>
 #include <random>
+#include <vector>
+
 #include "leitura.hpp"
 #include "solucao.hpp"
 
 
-// gerador global Mersenne Twister
-std::mt19937 num_aleatorio;
+// Gerador global Mersenne Twister usado pelas etapas aleatórias do algoritmo.
+inline std::mt19937 num_aleatorio;
 
-void setSeed(int seed) {
+inline void setSeed(unsigned int seed) {
     num_aleatorio.seed(seed);
 }
 
 
-Solucao construcaoGRASP(double alfa){
+inline Solucao construcaoGRASP(double alfa) {
     /*
-    Constrói uma solução inicial viável utilizando uma estratégia gulosa aleatorizada.
-    O parâmetro "alfa" controla o nível de aleatoriedade da construção. Quanto mais próximo de 1,
-    o comportamento é mais aleatório; quanto mais próximo de 0, o comportamento é mais guloso.
+    Constrói uma solução inicial viável utilizando uma estratégia gulosa
+    aleatorizada.
+
+    A solução é representada como uma lista de inteiros, em que cada inteiro
+    indica uma coluna escolhida. A construção adiciona colunas à lista até que
+    todas as linhas estejam cobertas.
+
+    A razão usada para avaliar cada coluna candidata é:
+
+        custo da coluna / quantidade de novas linhas cobertas
+
+    O parâmetro alfa controla o nível de aleatoriedade da construção:
+    - alfa próximo de 0: comportamento mais guloso;
+    - alfa próximo de 1: comportamento mais aleatório.
     */
 
     Solucao sol;
@@ -28,61 +40,66 @@ Solucao construcaoGRASP(double alfa){
     int total_cobertas = 0;
 
     while (total_cobertas < N_LINHAS) {
-        // calcula razão para cada coluna ainda não utilizada
         std::vector<int> candidatos;
-        std::vector<float> razoes;
+        std::vector<double> razoes;
 
+        // Calcula a razão para cada coluna que ainda cobre alguma linha nova.
         for (int j = 0; j < N_COLUNAS; j++) {
-            if (sol.colunas_escolhidas.test(j)) {
+            if (sol.contemColuna(j)) {
                 continue;
             }
 
-            int novas = 0;
+            int novas_linhas = 0;
             for (int linha : cobertura[j]) {
                 if (!cobertas[linha]) {
-                    novas = novas + 1;
+                    novas_linhas++;
                 }
             }
 
-            if (novas == 0) {
+            if (novas_linhas == 0) {
                 continue;
             }
 
             candidatos.push_back(j);
-            razoes.push_back(custo[j]/novas);
+            razoes.push_back(custo[j] / novas_linhas);
         }
 
         if (candidatos.empty()) {
             break;
         }
 
-        // encontra menor (melhor) e maior (pior) razão
-        float razao_min = *std::min_element(razoes.begin(), razoes.end());
-        float razao_max = *std::max_element(razoes.begin(), razoes.end());
+        double razao_min = *std::min_element(razoes.begin(), razoes.end());
+        double razao_max = *std::max_element(razoes.begin(), razoes.end());
+        double limite = razao_min + alfa * (razao_max - razao_min);
 
-
-        // monta a RLC: candidatos com razão < (min + alfa * (max - min))
+        // Monta a Lista Restrita de Candidatos (RLC).
         std::vector<int> rlc;
-        for (int k = 0; k < (int)candidatos.size(); k++) {
-            if (razoes[k] <= (razao_min + alfa * (razao_max - razao_min))) {
+        for (int k = 0; k < static_cast<int>(candidatos.size()); k++) {
+            if (razoes[k] <= limite) {
                 rlc.push_back(candidatos[k]);
             }
         }
 
-        // escolha aleatória de um índice da RLC
-        std::uniform_int_distribution indice_aleatorio(0, (int)rlc.size() - 1);
+        // Escolhe aleatoriamente uma coluna da RLC.
+        std::uniform_int_distribution<int> indice_aleatorio(
+            0,
+            static_cast<int>(rlc.size()) - 1
+        );
+
         int escolhido = rlc[indice_aleatorio(num_aleatorio)];
 
-        // adiciona à solução
-        sol.colunas_escolhidas.set(escolhido);
-        sol.custo_total = sol.custo_total + custo[escolhido];
+        // Adiciona a coluna escolhida à solução.
+        sol.adicionarColuna(escolhido);
+
+        // Atualiza as linhas cobertas pela coluna escolhida.
         for (int linha : cobertura[escolhido]) {
             if (!cobertas[linha]) {
                 cobertas[linha] = true;
-                total_cobertas = total_cobertas + 1;
+                total_cobertas++;
             }
         }
     }
     
+    sol.recalcularCusto();
     return sol;
 }
