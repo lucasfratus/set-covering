@@ -11,11 +11,13 @@
 struct Parametros {
     int tamanho_populacao = 0;
     int max_geracoes = 0;
+    int max_geracoes_sem_melhora = 0;
     int n_torneio = 0;
     int n_elite = 0;
     double alfa_grasp = 0.00;
     double taxa_crossover = 0.00;
     double taxa_mutacao = 0.00;
+    double taxa_busca_troca = 0.20;
     bool aplicar_bl_pop_inicial = true;
 };
 
@@ -23,6 +25,10 @@ struct Parametros {
 struct Resultado {
     Solucao melhor;
     int geracao_do_melhor = 0;
+
+    std::vector<double> historico_melhor_global;
+    std::vector<double> historico_melhor_geracao;
+    std::vector<double> historico_media_populacao;
 };
 
 
@@ -39,7 +45,7 @@ inline std::vector<Solucao> gerarPopulacaoInicial(const Parametros& parametros) 
         Solucao individuo = construcaoGRASP(parametros.alfa_grasp);
 
         if (parametros.aplicar_bl_pop_inicial) {
-            buscaLocal(individuo);
+            buscaLocalBasica(individuo);
         }
 
         populacao.push_back(individuo);
@@ -75,12 +81,13 @@ inline const Solucao& selecionarPorTorneio(
 
 inline Solucao realizaCrossover(const Solucao& pai1, const Solucao& pai2, std::mt19937& num_aleatorio) {
     /*
-    Crossover por união de soluções.
+    Realiza crosover baseado na união de soluções
+    O filho recebe inicialmente as colunas comuns aos dois pais. As colunas que
+    aparecem em apenas um dos pais são embaralhadas e adicionadas com uma
+    probabilidade fixa, preservando diversidade.
 
-    Como cada solução é uma lista de colunas selecionadas, o filho é construído
-    pela união das colunas do pai 1 com as colunas do pai 2. Essa ideia preserva
-    características dos dois pais e tende a gerar um filho viável quando os pais
-    são viáveis. Em seguida, a busca local remove colunas redundantes.
+    Caso o filho gerado fique inviável, aplica-se um reparo guloso da solução. Em seguida,
+    as colunas redundantes são removidas.
     */
     Solucao filho;
 
@@ -193,6 +200,17 @@ inline void mutacao(Solucao& individuo, double taxa_mutacao, std::mt19937& num_a
 }
 
 
+double calcularMediaPopulacao(const std::vector<Solucao>& populacao) {
+    double soma = 0.0;
+
+    for (const Solucao& sol : populacao) {
+        soma += sol.custo_total;
+    }
+
+    return soma / populacao.size();
+}
+
+
 inline std::vector<Solucao> atualizarPopulacao(
     std::vector<Solucao> populacao_atual,
     std::vector<Solucao> filhos,
@@ -236,6 +254,12 @@ inline Resultado executarAlgoritmoGenetico(const Parametros& parametros) {
     resultado.melhor = populacao.front();
     resultado.geracao_do_melhor = 0;
 
+    int geracoes_sem_melhora = 0;
+
+    resultado.historico_melhor_global.push_back(resultado.melhor.custo_total);
+    resultado.historico_melhor_geracao.push_back(populacao.front().custo_total);
+    resultado.historico_media_populacao.push_back(calcularMediaPopulacao(populacao));
+
     std::uniform_int_distribution<int> sorteio_porcentagem(1, 100);
 
     for (int geracao = 1; geracao <= parametros.max_geracoes; geracao++) {
@@ -262,14 +286,22 @@ inline Resultado executarAlgoritmoGenetico(const Parametros& parametros) {
 
             if (sorteio <= parametros.taxa_crossover * 100) {
                 filho1 = realizaCrossover(pai1, pai2, num_aleatorio);
-                filho2 = realizaCrossover(pai1, pai2, num_aleatorio);
+                filho2 = realizaCrossover(pai2, pai1, num_aleatorio);
             } else {
                 filho1 = pai1;
                 filho2 = pai2;
             }
 
+
             mutacao(filho1, parametros.taxa_mutacao, num_aleatorio);
-            buscaLocal(filho1);
+            int sorteio_bl1 = sorteio_porcentagem(num_aleatorio);
+
+            if (sorteio_bl1 <= parametros.taxa_busca_troca * 100) {
+                buscaLocalComTrocaRestrita(filho1);
+            } else {
+                buscaLocalBasica(filho1);
+            }
+
 
             if (filho1.ehViavel()) {
                 filhos.push_back(filho1);
@@ -277,7 +309,15 @@ inline Resultado executarAlgoritmoGenetico(const Parametros& parametros) {
 
             if (static_cast<int>(filhos.size()) < parametros.tamanho_populacao) {
                 mutacao(filho2, parametros.taxa_mutacao, num_aleatorio);
-                buscaLocal(filho2);
+
+                int sorteio_bl2 = sorteio_porcentagem(num_aleatorio);
+
+                if (sorteio_bl2 <= parametros.taxa_busca_troca * 100) {
+                    buscaLocalComTrocaRestrita(filho2);
+                } else {
+                    buscaLocalBasica(filho2);
+                }
+                
 
                 if (filho2.ehViavel()) {
                     filhos.push_back(filho2);
@@ -297,8 +337,19 @@ inline Resultado executarAlgoritmoGenetico(const Parametros& parametros) {
         if (melhorQue(populacao.front(), resultado.melhor)) {
             resultado.melhor = populacao.front();
             resultado.geracao_do_melhor = geracao;
+            geracoes_sem_melhora = 0;
+        } else {
+            geracoes_sem_melhora++;
+        }
+
+        if (geracoes_sem_melhora >= parametros.max_geracoes_sem_melhora) {
+            break;
         }
     }
+
+    resultado.historico_melhor_global.push_back(resultado.melhor.custo_total);
+    resultado.historico_melhor_geracao.push_back(populacao.front().custo_total);
+    resultado.historico_media_populacao.push_back(calcularMediaPopulacao(populacao));
 
     return resultado;
 }

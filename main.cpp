@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <fstream>
 
 #include "leitura.hpp"
 #include "solucao.hpp"
@@ -8,6 +9,23 @@
 #include "busca_local.hpp"
 #include "algoritmo_genetico.hpp"
 
+
+void salvarHistoricoConvergencia(const Resultado& resultado, const std::string& caminho_saida) {
+    std::ofstream arquivo(caminho_saida);
+
+    if (!arquivo.is_open()) {
+        throw std::runtime_error("Nao foi possivel criar o arquivo: " + caminho_saida);
+    }
+
+    arquivo << "geracao,melhor_global,melhor_geracao,media_populacao\n";
+
+    for (int i = 0; i < (int)resultado.historico_melhor_global.size(); i++) {
+        arquivo << i << ","
+                << resultado.historico_melhor_global[i] << ","
+                << resultado.historico_melhor_geracao[i] << ","
+                << resultado.historico_media_populacao[i] << "\n";
+    }
+}
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -42,14 +60,18 @@ int main(int argc, char* argv[]) {
         Parametros parametros;
         parametros.tamanho_populacao = 200;
         parametros.max_geracoes = 500;
+        parametros.max_geracoes_sem_melhora = 100;
         parametros.n_torneio = 3;
         parametros.n_elite = 2;
-        parametros.alfa_grasp = 0.35;
+        parametros.alfa_grasp = 0.4;
         parametros.taxa_crossover = 0.90;
-        parametros.taxa_mutacao = 1.0 / N_COLUNAS;
+        parametros.taxa_busca_troca = 0.20;
+        parametros.taxa_mutacao = 0.05;
         parametros.aplicar_bl_pop_inicial = false;
 
         Resultado resultado = executarAlgoritmoGenetico(parametros);
+
+        salvarHistoricoConvergencia(resultado, "convergencia.csv");
 
         std::cout << "Melhor solucao encontrada na geracao "
                   << resultado.geracao_do_melhor << "\n";

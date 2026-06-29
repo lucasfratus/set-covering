@@ -263,17 +263,34 @@ inline bool aplicarTroca1Por1Restrita(Solucao& sol) {
     return true;
 }
 
-inline void buscaLocal(Solucao& sol) {
+
+inline void buscaLocalBasica(Solucao& sol) {
     /*
-    Busca local aplicada após a mutação e antes da atualização da população.
-    Procedimentos utilizados:
+    Busca local básica:
+    1. repara a solução se estiver inviável;
+    2. remove colunas redundantes.
 
-    1. Remoção de colunas redundantes:
-       remove colunas que podem sair da solução sem deixar linhas descobertas.
+    Essa etapa é aplicada em todos os filhos.
+    */
+    if (!sol.ehViavel()) {
+        repararSolucao(sol);
+    }
 
-    2. Troca 1-por-1 restrita:
-       substitui uma coluna escolhida por uma coluna não escolhida de menor
-       custo, desde que nenhuma linha fique descoberta.
+    if (!sol.ehViavel()) {
+        return;
+    }
+
+    removerRedundantes(sol);
+    sol.recalcularCusto();
+}
+
+
+inline void buscaLocalComTrocaRestrita(Solucao& sol) {
+    /*
+    Busca local com troca 1-por-1 restrita.
+
+    Essa etapa é mais intensiva e pode reduzir a diversidade da população,
+    então deve ser aplicada apenas em uma parte dos filhos.
     */
     if (!sol.ehViavel()) {
         repararSolucao(sol);
@@ -285,8 +302,8 @@ inline void buscaLocal(Solucao& sol) {
 
     removerRedundantes(sol);
 
+    const int max_movimentos = 1;
     int movimentos = 0;
-    const int max_movimentos = 2;
 
     while (movimentos < max_movimentos && aplicarTroca1Por1Restrita(sol)) {
         removerRedundantes(sol);
