@@ -2,8 +2,8 @@
 
 EXEC="./programa"
 
-INSTANCIAS=("Teste_01.dat" "Teste_02.dat" "Teste_03.dat")
-MELHORES=(557.44 537.89 517.58)
+INSTANCIAS=("Teste_01.dat" "Teste_02.dat" "Teste_03.dat" "Teste_04.dat" "Teste_05.dat" "Wren_01.dat" "Wren_02.dat" "Wren_03.dat" "Wren_04.dat")
+MELHORES=(557.44 537.89 517.58 1162.8 1020.12 7856 13908 13780 58161)
 
 REPETICOES=30
 

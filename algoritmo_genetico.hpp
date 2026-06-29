@@ -215,15 +215,22 @@ inline std::vector<Solucao> atualizarPopulacao(
     std::vector<Solucao> populacao_atual,
     std::vector<Solucao> filhos,
     int n_elite,
-    int tamanho_populacao
+    int tamanho_populacao,
+    std::mt19937& num_aleatorio
 ) {
     std::sort(populacao_atual.begin(), populacao_atual.end(), melhorQue);
-    std::sort(filhos.begin(), filhos.end(), melhorQue);
+
+    /*
+    Mantém os melhores indivíduos da população atual, mas não ordena os filhos.
+    Os filhos são embaralhados para preservar diversidade na nova população.
+    */
+    std::shuffle(filhos.begin(), filhos.end(), num_aleatorio);
 
     std::vector<Solucao> nova_populacao;
     nova_populacao.reserve(tamanho_populacao);
 
     int elite = std::min(n_elite, static_cast<int>(populacao_atual.size()));
+
     for (int i = 0; i < elite && static_cast<int>(nova_populacao.size()) < tamanho_populacao; i++) {
         nova_populacao.push_back(populacao_atual[i]);
     }
@@ -232,16 +239,24 @@ inline std::vector<Solucao> atualizarPopulacao(
         if (static_cast<int>(nova_populacao.size()) >= tamanho_populacao) {
             break;
         }
+
         nova_populacao.push_back(filho);
     }
+
+    /*
+    Caso faltem indivíduos por algum motivo, completa com indivíduos antigos
+    embaralhados, evitando copiar sempre os mesmos melhores.
+    */
+    std::shuffle(populacao_atual.begin(), populacao_atual.end(), num_aleatorio);
 
     for (const Solucao& individuo : populacao_atual) {
         if (static_cast<int>(nova_populacao.size()) >= tamanho_populacao) {
             break;
         }
+
         nova_populacao.push_back(individuo);
     }
-    
+
     return nova_populacao;
 }
 
@@ -266,7 +281,12 @@ inline Resultado executarAlgoritmoGenetico(const Parametros& parametros) {
         std::vector<Solucao> filhos;
         filhos.reserve(parametros.tamanho_populacao);
 
-        while (static_cast<int>(filhos.size()) < parametros.tamanho_populacao) {
+        int tentativas = 0;
+        int max_tentativas = parametros.tamanho_populacao * 30;
+
+        while (static_cast<int>(filhos.size()) < parametros.tamanho_populacao && tentativas < max_tentativas) {
+            tentativas++;
+            
             const Solucao& pai1 = selecionarPorTorneio(
                 populacao,
                 parametros.n_torneio,
@@ -329,7 +349,8 @@ inline Resultado executarAlgoritmoGenetico(const Parametros& parametros) {
             populacao,
             filhos,
             parametros.n_elite,
-            parametros.tamanho_populacao
+            parametros.tamanho_populacao,
+            num_aleatorio
         );
 
         std::sort(populacao.begin(), populacao.end(), melhorQue);
@@ -342,14 +363,14 @@ inline Resultado executarAlgoritmoGenetico(const Parametros& parametros) {
             geracoes_sem_melhora++;
         }
 
+        resultado.historico_melhor_global.push_back(resultado.melhor.custo_total);
+        resultado.historico_melhor_geracao.push_back(populacao.front().custo_total);
+        resultado.historico_media_populacao.push_back(calcularMediaPopulacao(populacao));
+
         if (geracoes_sem_melhora >= parametros.max_geracoes_sem_melhora) {
             break;
         }
     }
-
-    resultado.historico_melhor_global.push_back(resultado.melhor.custo_total);
-    resultado.historico_melhor_geracao.push_back(populacao.front().custo_total);
-    resultado.historico_media_populacao.push_back(calcularMediaPopulacao(populacao));
 
     return resultado;
 }
