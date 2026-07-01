@@ -40,6 +40,8 @@ inline bool melhorQue(const Solucao& a, const Solucao& b) {
 inline std::vector<Solucao> gerarPopulacaoInicial(const Parametros& parametros) {
     std::vector<Solucao> populacao;
     populacao.reserve(parametros.tamanho_populacao);
+
+    std::cerr << "Gerando populacao inicial...\n";
     
     for (int i = 0; i < parametros.tamanho_populacao; i++) {
         Solucao individuo = construcaoGRASP(parametros.alfa_grasp);
@@ -49,8 +51,14 @@ inline std::vector<Solucao> gerarPopulacaoInicial(const Parametros& parametros) 
         }
 
         populacao.push_back(individuo);
+        if ((i + 1) % 10 == 0) {
+            std::cerr << "Individuos iniciais gerados: "
+                      << (i + 1) << "/"
+                      << parametros.tamanho_populacao
+                      << std::endl;
+        }
     }
-
+    std::cerr << "Populacao inicial finalizada.\n";
     return populacao;
 }
 
@@ -278,6 +286,7 @@ inline Resultado executarAlgoritmoGenetico(const Parametros& parametros) {
     std::uniform_int_distribution<int> sorteio_porcentagem(1, 100);
 
     for (int geracao = 1; geracao <= parametros.max_geracoes; geracao++) {
+        std::cerr << "Iniciando geracao " << geracao << std::endl;
         std::vector<Solucao> filhos;
         filhos.reserve(parametros.tamanho_populacao);
 
@@ -361,6 +370,13 @@ inline Resultado executarAlgoritmoGenetico(const Parametros& parametros) {
             geracoes_sem_melhora = 0;
         } else {
             geracoes_sem_melhora++;
+        }
+
+        if (geracao % 10 == 0) {
+        std::cout << "Geracao " << geracao
+                << " | melhor = " << resultado.melhor.custo_total
+                << " | media = " << calcularMediaPopulacao(populacao)
+                << std::endl;
         }
 
         resultado.historico_melhor_global.push_back(resultado.melhor.custo_total);

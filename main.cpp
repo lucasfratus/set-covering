@@ -58,9 +58,9 @@ int main(int argc, char* argv[]) {
         std::cout << "Seed usada: " << seed << "\n\n";
 
         Parametros parametros;
-        parametros.tamanho_populacao = 200;
-        parametros.max_geracoes = 500;
-        parametros.max_geracoes_sem_melhora = 100;
+        parametros.tamanho_populacao = 60;
+        parametros.max_geracoes = 200;
+        parametros.max_geracoes_sem_melhora = 50;
         parametros.n_torneio = 3;
         parametros.n_elite = 2;
         parametros.alfa_grasp = 0.45;
