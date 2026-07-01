@@ -111,9 +111,27 @@ inline void repararSolucao(Solucao& sol) {
     int total_cobertas = 0;
     std::vector<bool> cobertas = saoCobertas(sol, total_cobertas);
     std::vector<bool> escolhida(N_COLUNAS, false);
+    std::vector<int> novas_linhas(N_COLUNAS, 0);
 
     for (int coluna : sol.colunas_escolhidas) {
         escolhida[coluna] = true;
+    }
+
+    // Calcula, uma única vez, quantas linhas ainda descobertas cada coluna cobre.
+    for (int j = 0; j < N_COLUNAS; j++) {
+        if (escolhida[j]) {
+            continue;
+        }
+
+        int contador = 0;
+
+        for (int linha : cobertura[j]) {
+            if (!cobertas[linha]) {
+                contador++;
+            }
+        }
+
+        novas_linhas[j] = contador;
     }
 
     while (total_cobertas < N_LINHAS) {
@@ -121,22 +139,12 @@ inline void repararSolucao(Solucao& sol) {
         double melhor_razao = 1e18;
 
         for (int j = 0; j < N_COLUNAS; j++) {
-            if (escolhida[j]) {
+            if (escolhida[j] || novas_linhas[j] == 0) {
                 continue;
             }
 
-            int novas_linhas = 0;
-            for (int linha : cobertura[j]) {
-                if (!cobertas[linha]) {
-                    novas_linhas++;
-                }
-            }
+            double razao = custo[j] / static_cast<double>(novas_linhas[j]);
 
-            if (novas_linhas == 0) {
-                continue;
-            }
-
-            double razao = custo[j] / novas_linhas;
             if (razao < melhor_razao) {
                 melhor_razao = razao;
                 melhor_coluna = j;
@@ -150,11 +158,22 @@ inline void repararSolucao(Solucao& sol) {
 
         sol.adicionarColuna(melhor_coluna);
         escolhida[melhor_coluna] = true;
+        novas_linhas[melhor_coluna] = 0;
 
         for (int linha : cobertura[melhor_coluna]) {
             if (!cobertas[linha]) {
                 cobertas[linha] = true;
                 total_cobertas++;
+
+                /*
+                Essa linha não é mais "nova" para nenhuma coluna candidata.
+                Atualiza somente as colunas que cobrem essa linha.
+                */
+                for (int coluna_afetada : colunas_por_linha[linha]) {
+                    if (!escolhida[coluna_afetada] && novas_linhas[coluna_afetada] > 0) {
+                        novas_linhas[coluna_afetada]--;
+                    }
+                }
             }
         }
     }

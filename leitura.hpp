@@ -7,8 +7,9 @@
 #include <sstream>
 int N_LINHAS, N_COLUNAS;
 
-std::vector<float>            custo;      // custo[j]     = custo da coluna j
-std::vector<std::vector<int>> cobertura;  // cobertura[j] = linhas cobertas pela coluna j
+std::vector<float> custo;                    // custo[j] = custo da coluna j
+std::vector<std::vector<int>> cobertura;     // cobertura[j] = linhas cobertas pela coluna j
+std::vector<std::vector<int>> colunas_por_linha; // colunas_por_linha[i] = colunas que cobrem a linha i
 
 
 void lerInstancia(const std::string& caminho) {
@@ -22,6 +23,10 @@ void lerInstancia(const std::string& caminho) {
 
     custo.resize(N_COLUNAS);
     cobertura.resize(N_COLUNAS);
+
+    custo.assign(N_COLUNAS, 0.0f);
+    cobertura.assign(N_COLUNAS, std::vector<int>());
+    colunas_por_linha.assign(N_LINHAS + 1, std::vector<int>());
 
     std::getline(arquivo, linha);    // consome resto da linha "DADOS"
     while (std::getline(arquivo, linha)) {
@@ -39,7 +44,12 @@ void lerInstancia(const std::string& caminho) {
         int j = id - 1;            
         custo[j] = c;
         int row;
-        while (ss >> row)
+        while (ss >> row) {
             cobertura[j].push_back(row);
+
+            if (row >= 1 && row <= N_LINHAS) {
+                colunas_por_linha[row].push_back(j);
+            }
+        }
     }
 }
